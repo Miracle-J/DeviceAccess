@@ -11,36 +11,37 @@ import java.util.concurrent.Executors;
 
 import org.springframework.stereotype.Component;
 
+import com.wx.websocket.DataWebSocketHandler;
+
 /**
- * 监听 8671 端口的 UDP 服务器，用于接收设备上报的数据。
+ * 监听8671端口的UDP服务器，用于接收设备数据。
  *
- * <p>每个接收到的数据报都会被解析为 {@link MsgItem} 对象并输出到控制台，
- * 后续可根据业务需要进行持久化或其他处理。</p>
+ * <p>每个接收到的数据报都被解析为 {@link MsgItem} 实例并打印到控制台。</p>
  */
 @Component
 public class DeviceDataUdpServer {
 
-    /** 设备数据监听端口 */
     private static final int PORT = 8671;
-    /** 单线程执行器用于后台监听 */
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    /** 标记服务器运行状态 */
+    /** 用于广播消息的 WebSocket 处理器 */
+    private final DataWebSocketHandler webSocketHandler;
     private volatile boolean running = true;
 
-    /** 容器启动后自动调用，开启监听线程 */
+    public DeviceDataUdpServer(DataWebSocketHandler webSocketHandler) {
+        this.webSocketHandler = webSocketHandler;
+    }
+
     @PostConstruct
     public void start() {
         executor.execute(this::listen);
     }
 
-    /** 容器销毁前调用，停止监听 */
     @PreDestroy
     public void stop() {
         running = false;
         executor.shutdownNow();
     }
 
-    /** 循环接收 UDP 数据包 */
     private void listen() {
         try (DatagramSocket socket = new DatagramSocket(PORT)) {
             byte[] buf = new byte[1024 * 10];
@@ -56,18 +57,25 @@ public class DeviceDataUdpServer {
         }
     }
 
-    /**
-     * 处理单个数据报，将其解析为 {@link MsgItem}。
-     *
-     * @param data 原始字节数组
-     */
-    private void process(byte[] data) {
-        if (data.length < MsgItemParser.LENGTH) {
-            return; // 数据长度不足
-        }
-        byte[] payload = Arrays.copyOf(data, MsgItemParser.LENGTH);
-        MsgItem item = MsgItemParser.parse(payload);
-        System.out.println("Received message: " + item);
+private void process(byte[] data) {
+//    // 添加调试信息
+//    System.out.println("接收到的数据长度: " + data.length);
+//    if (data.length >= 4) {
+//        System.out.println("前4个字节: " + String.format("%02X %02X %02X %02X", data[0], data[1], data[2], data[3]));
+//        int rawWorkshopId = (data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24);
+//        System.out.println("直接解析的workshopId值: " + rawWorkshopId);
+//    }
+
+    if (data.length < MsgItemParser.LENGTH) {
+        System.out.println("数据长度不足，期望: " + MsgItemParser.LENGTH + ", 实际: " + data.length);
+        return;
     }
+    byte[] payload = Arrays.copyOf(data, MsgItemParser.LENGTH);
+    MsgItem item = MsgItemParser.parse(payload);
+    System.out.println("解析后的消息: " + item);
+    // 将消息广播给所有 WebSocket 客户端
+    webSocketHandler.broadcast(item, PORT);
+}
+
 }
 

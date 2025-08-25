@@ -24,7 +24,8 @@ public final class MsgItemParser {
         // 使用小端模式读取数据
         ByteBuffer buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
         MsgItem item = new MsgItem();
-        item.setWorkshopId(buffer.getInt());
+        int workshopId = buffer.getInt();
+        item.setWorkshopId(workshopId);
         item.setLineId(buffer.getInt());
         item.setDeviceId(buffer.getInt());
         item.setPartId(buffer.getInt());
@@ -73,4 +74,3 @@ public final class MsgItemParser {
         return new String(arr, 0, len, StandardCharsets.US_ASCII);
     }
 }
-
