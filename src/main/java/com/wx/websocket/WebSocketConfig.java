@@ -14,13 +14,10 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    private final DataWebSocketHandler motionHandler;
-    private final DataWebSocketHandler deviceHandler;
-
-    public WebSocketConfig(@Qualifier("motionHandler") DataWebSocketHandler motionHandler,
-                           @Qualifier("deviceHandler") DataWebSocketHandler deviceHandler) {
-        this.motionHandler = motionHandler;
-        this.deviceHandler = deviceHandler;
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(motionHandler(), "/ws/motion").setAllowedOrigins("*");
+        registry.addHandler(deviceHandler(), "/ws/device").setAllowedOrigins("*");
     }
 
     /** 8677端口对应的 WebSocket 处理器 */
@@ -34,11 +31,4 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public DataWebSocketHandler deviceHandler() {
         return new DataWebSocketHandler();
     }
-
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(motionHandler, "/ws/motion").setAllowedOrigins("*");
-        registry.addHandler(deviceHandler, "/ws/device").setAllowedOrigins("*");
-    }
 }
-

@@ -63,27 +63,17 @@ public class DeviceDataUdpServer {
         }
     }
 
-private void process(byte[] data) {
-//    // 添加调试信息
-//    System.out.println("接收到的数据长度: " + data.length);
-//    if (data.length >= 4) {
-//        System.out.println("前4个字节: " + String.format("%02X %02X %02X %02X", data[0], data[1], data[2], data[3]));
-//        int rawWorkshopId = (data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24);
-//        System.out.println("直接解析的workshopId值: " + rawWorkshopId);
-//    }
-
-    if (data.length < MsgItemParser.LENGTH) {
-        System.out.println("数据长度不足，期望: " + MsgItemParser.LENGTH + ", 实际: " + data.length);
-        return;
+    private void process(byte[] data) {
+        if (data.length < MsgItemParser.LENGTH) {
+            System.out.println("数据长度不足，期望: " + MsgItemParser.LENGTH + ", 实际: " + data.length);
+            return;
+        }
+        byte[] payload = Arrays.copyOf(data, MsgItemParser.LENGTH);
+        MsgItem item = MsgItemParser.parse(payload);
+        System.out.println("解析后的消息: " + item);
+        // 保存最新数据
+        lastDataService.save(PORT, item.getLineId(), item.getDeviceId(), item);
+        // 将消息广播给所有 WebSocket 客户端
+        webSocketHandler.broadcast(item, PORT);
     }
-    byte[] payload = Arrays.copyOf(data, MsgItemParser.LENGTH);
-    MsgItem item = MsgItemParser.parse(payload);
-    System.out.println("解析后的消息: " + item);
-    // 保存最新数据
-    lastDataService.save(PORT, item.getLineId(), item.getDeviceId(), item);
-    // 将消息广播给所有 WebSocket 客户端
-    webSocketHandler.broadcast(item, PORT);
 }
-
-}
-

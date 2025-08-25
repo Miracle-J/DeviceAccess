@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -27,7 +28,7 @@ public class LastDataService {
     private final Path filePath;
 
     public LastDataService(@Value("${lastdata.file:}") String path) {
-        if (path == null || path.isBlank()) {
+        if (path == null || StringUtils.isEmpty( path)) {
             this.filePath = Paths.get(System.getProperty("user.home"), "last-data.json");
         } else {
             this.filePath = Paths.get(path);
@@ -40,7 +41,7 @@ public class LastDataService {
         if (Files.exists(filePath)) {
             try {
                 Map<Integer, Map<String, Object>> fromFile = mapper.readValue(
-                        filePath.toFile(), new TypeReference<>() {});
+                        filePath.toFile(), new TypeReference<Map<Integer, Map<String, Object>>>() {});
                 cache.putAll(fromFile);
             } catch (IOException e) {
                 // 读取失败时忽略，使用空缓存
