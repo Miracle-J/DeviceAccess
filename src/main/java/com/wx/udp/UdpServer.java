@@ -64,29 +64,47 @@ public class UdpServer {
     }
 
     private void process(byte[] data) {
-        if (data.length < 8) {
-            return; // 无效数据
-        }
-        if (data[0] != (byte) 0xF0 || data[1] != (byte) 0xF0) {
-            return; // 错误的头部
-        }
-        ByteBuffer header = ByteBuffer.wrap(data, 2, 2).order(ByteOrder.LITTLE_ENDIAN);
-        int payloadLen = header.getShort() & 0xFFFF;
-        if (payloadLen + 8 != data.length) {
-            return; // 长度不匹配
-        }
-        for (int i = data.length - 4; i < data.length; i++) {
-            if (data[i] != 0) {
-                return; // 无效的尾部
+        int offset = 0;
+        while (offset + 8 <= data.length) {
+            // 查找帧头
+            if (data[offset] != (byte) 0xF0 || data[offset + 1] != (byte) 0xF0) {
+                offset++;
+                continue;
             }
+
+            // 读取长度（小端）
+            int payloadLen = ByteBuffer.wrap(data, offset + 2, 2)
+                                       .order(ByteOrder.LITTLE_ENDIAN)
+                                       .getShort() & 0xFFFF;
+            int end = offset + 4 + payloadLen;
+            if (end + 4 > data.length) {
+                // 剩余数据不足以组成完整帧，跳出循环
+                break;
+            }
+
+            // 校验尾部4个0x00
+            boolean validTail = true;
+            for (int i = end; i < end + 4; i++) {
+                if (data[i] != 0) {
+                    validTail = false;
+                    break;
+                }
+            }
+            if (!validTail) {
+                offset++;
+                continue;
+            }
+
+            byte[] payload = Arrays.copyOfRange(data, offset + 4, end);
+            HuaShuMessage msg = HuaShuMessageParser.parse(payload);
+            System.out.println("Received message: " + msg);
+            // 保存最新数据
+            lastDataService.save(PORT, msg.getProductionLineId(), msg.getMacId(), msg);
+            // 将消息广播给所有 WebSocket 客户端
+            webSocketHandler.broadcast(msg, PORT);
+
+            offset = end + 4; // 处理下一帧
         }
-        byte[] payload = Arrays.copyOfRange(data, 4, 4 + payloadLen);
-        HuaShuMessage msg = HuaShuMessageParser.parse(payload);
-        System.out.println("Received message: " + msg);
-        // 保存最新数据
-        lastDataService.save(PORT, msg.getProductionLineId(), msg.getMacId(), msg);
-        // 将消息广播给所有 WebSocket 客户端
-        webSocketHandler.broadcast(msg, PORT);
     }
 }
 
