@@ -9,8 +9,10 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.wx.storage.LastDataService;
 import com.wx.websocket.DataWebSocketHandler;
 
 /**
@@ -25,10 +27,14 @@ public class DeviceDataUdpServer {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     /** 用于广播消息的 WebSocket 处理器 */
     private final DataWebSocketHandler webSocketHandler;
+    /** 数据存储服务 */
+    private final LastDataService lastDataService;
     private volatile boolean running = true;
 
-    public DeviceDataUdpServer(DataWebSocketHandler webSocketHandler) {
+    public DeviceDataUdpServer(@Qualifier("deviceHandler") DataWebSocketHandler webSocketHandler,
+                               LastDataService lastDataService) {
         this.webSocketHandler = webSocketHandler;
+        this.lastDataService = lastDataService;
     }
 
     @PostConstruct
@@ -73,6 +79,8 @@ private void process(byte[] data) {
     byte[] payload = Arrays.copyOf(data, MsgItemParser.LENGTH);
     MsgItem item = MsgItemParser.parse(payload);
     System.out.println("解析后的消息: " + item);
+    // 保存最新数据
+    lastDataService.save(PORT, item.getLineId(), item.getDeviceId(), item);
     // 将消息广播给所有 WebSocket 客户端
     webSocketHandler.broadcast(item, PORT);
 }

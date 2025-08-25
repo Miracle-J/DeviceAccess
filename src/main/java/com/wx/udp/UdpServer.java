@@ -11,8 +11,10 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.wx.storage.LastDataService;
 import com.wx.websocket.DataWebSocketHandler;
 
 /**
@@ -25,10 +27,14 @@ public class UdpServer {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     /** 用于广播消息的 WebSocket 处理器 */
     private final DataWebSocketHandler webSocketHandler;
+    /** 数据存储服务 */
+    private final LastDataService lastDataService;
     private volatile boolean running = true;
 
-    public UdpServer(DataWebSocketHandler webSocketHandler) {
+    public UdpServer(@Qualifier("motionHandler") DataWebSocketHandler webSocketHandler,
+                     LastDataService lastDataService) {
         this.webSocketHandler = webSocketHandler;
+        this.lastDataService = lastDataService;
     }
 
     @PostConstruct
@@ -77,6 +83,8 @@ public class UdpServer {
         byte[] payload = Arrays.copyOfRange(data, 4, 4 + payloadLen);
         HuaShuMessage msg = HuaShuMessageParser.parse(payload);
         System.out.println("Received message: " + msg);
+        // 保存最新数据
+        lastDataService.save(PORT, msg.getProductionLineId(), msg.getMacId(), msg);
         // 将消息广播给所有 WebSocket 客户端
         webSocketHandler.broadcast(msg, PORT);
     }

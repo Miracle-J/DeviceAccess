@@ -2,7 +2,6 @@ package com.wx.websocket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -18,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * 简单的 WebSocket 处理器，维护当前连接的会话，并广播包含 UDP 来源端口
  * 与解析数据的 JSON 消息。
  */
-@Component
 public class DataWebSocketHandler extends TextWebSocketHandler {
 
     /** 保存所有活跃的 WebSocket 会话 */
