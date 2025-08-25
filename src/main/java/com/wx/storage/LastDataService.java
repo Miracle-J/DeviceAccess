@@ -62,8 +62,13 @@ public class LastDataService {
                 .put(lineId + "-" + deviceId, data);
         try {
             Files.createDirectories(filePath.getParent());
+            Path parent = filePath.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
             mapper.writeValue(filePath.toFile(), cache);
         } catch (IOException e) {
+            e.printStackTrace();
             // 写入失败时忽略
         }
     }
