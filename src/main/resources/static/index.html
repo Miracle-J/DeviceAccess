@@ -2,5 +2,14 @@
 <body>
 <h1>hello word!!!</h1>
 <p>this is a html page</p>
+<ul id="messages"></ul>
+<script>
+    var ws = new WebSocket("ws://" + location.host + "/ws");
+    ws.onmessage = function(event) {
+        var li = document.createElement("li");
+        li.textContent = event.data;
+        document.getElementById("messages").appendChild(li);
+    };
+</script>
 </body>
 </html>

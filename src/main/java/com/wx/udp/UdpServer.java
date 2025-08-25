@@ -13,6 +13,8 @@ import java.util.concurrent.Executors;
 
 import org.springframework.stereotype.Component;
 
+import com.wx.websocket.DataWebSocketHandler;
+
 /**
  * 监听8677端口的简单UDP服务器，用于接收华曙睿讯消息并将其记录到控制台。
  */
@@ -21,7 +23,13 @@ public class UdpServer {
 
     private static final int PORT = 8677;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    /** 用于广播消息的 WebSocket 处理器 */
+    private final DataWebSocketHandler webSocketHandler;
     private volatile boolean running = true;
+
+    public UdpServer(DataWebSocketHandler webSocketHandler) {
+        this.webSocketHandler = webSocketHandler;
+    }
 
     @PostConstruct
     public void start() {
@@ -69,6 +77,8 @@ public class UdpServer {
         byte[] payload = Arrays.copyOfRange(data, 4, 4 + payloadLen);
         HuaShuMessage msg = HuaShuMessageParser.parse(payload);
         System.out.println("Received message: " + msg);
+        // 将消息广播给所有 WebSocket 客户端
+        webSocketHandler.broadcast(msg, PORT);
     }
 }
 
