@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Utility class for parsing binary payloads into {@link HuaShuMessage} objects.
+ *  用于将二进制载荷解析为 {@link HuaShuMessage} 对象的工具类
  */
 public final class HuaShuMessageParser {
 
@@ -12,11 +12,10 @@ public final class HuaShuMessageParser {
     }
 
     /**
-     * Parse a payload without framing (i.e. without the F0F0 length header and
-     * trailing zeros) into a {@link HuaShuMessage}.
+     * 将不带帧格式的载荷（即不包含 F0F0 长度头和尾随零）解析为 {@link HuaShuMessage}
      *
-     * @param payload binary payload
-     * @return parsed message
+     * @param payload 二进制载荷
+     * @return 解析后的消息
      */
     public static HuaShuMessage parse(byte[] payload) {
         ByteBuffer buffer = ByteBuffer.wrap(payload).order(ByteOrder.LITTLE_ENDIAN);

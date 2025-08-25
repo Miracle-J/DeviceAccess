@@ -14,13 +14,12 @@ import java.util.concurrent.Executors;
 import org.springframework.stereotype.Component;
 
 /**
- * Simple UDP server that listens on port 8671 for HuaShu RuiXun messages and
- * logs them to the console.
+ 监听8671端口的简单UDP服务器，用于接收华曙睿讯消息并将其记录到控制台。
  */
 @Component
 public class UdpServer {
 
-    private static final int PORT = 8671;
+    private static final int PORT = 8677;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private volatile boolean running = true;
 
@@ -52,19 +51,19 @@ public class UdpServer {
 
     private void process(byte[] data) {
         if (data.length < 8) {
-            return; // invalid
+            return; // 无效数据
         }
         if (data[0] != (byte) 0xF0 || data[1] != (byte) 0xF0) {
-            return; // wrong header
+            return; // 错误的头部
         }
         ByteBuffer header = ByteBuffer.wrap(data, 2, 2).order(ByteOrder.LITTLE_ENDIAN);
         int payloadLen = header.getShort() & 0xFFFF;
         if (payloadLen + 8 != data.length) {
-            return; // length mismatch
+            return; // 长度不匹配
         }
         for (int i = data.length - 4; i < data.length; i++) {
             if (data[i] != 0) {
-                return; // invalid trailer
+                return; // 无效的尾部
             }
         }
         byte[] payload = Arrays.copyOfRange(data, 4, 4 + payloadLen);

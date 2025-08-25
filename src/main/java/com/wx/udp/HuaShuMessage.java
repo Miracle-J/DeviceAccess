@@ -3,21 +3,49 @@ package com.wx.udp;
 import java.util.Arrays;
 
 /**
- * Representation of a single STRU_MSG_ITEM message from the HuaShu RuiXun
- * protocol. The structure mirrors the C struct described in the integration
- * documentation.
+ * 华曙睿讯协议中单个STRU_MSG_ITEM消息的表示。该结构与集成文档中描述的C结构体相对应。
  */
 public class HuaShuMessage {
 
+    /**
+     * 产线ID
+     */
     private byte productionLineId; // u8ProductionLineId
+    /**
+     * 设备
+     */
     private byte macId;            // u8MacId
+    /**
+     * 模块编号
+     */
     private byte moduleId;         // u8ModuleId
+    /**
+     * 控制器编号
+     */
     private byte cardId;           // u8CardId
+    /**
+     * 消息类型, 0:输入信号&位置信号 1输出信号 2告警信息 3错误信息 4轴转动信息
+     */
     private int type;              // s32Type
+    /**
+     * 数据节点
+     */
     private int index;             // s32Index
+    /**
+     * 值
+     */
     private int value;             // s32Value
+    /**
+     * 数据
+     */
     private final int[] data = new int[2]; // as32Data[2]
+    /**
+     * 96个输入信号状态
+     */
     private int[] in;   // as32In[96] when type == 0
+    /**
+     * 16个轴的位置
+     */
     private int[] pos;  // as32Pos[16] when type == 0
 
     public byte getProductionLineId() {
