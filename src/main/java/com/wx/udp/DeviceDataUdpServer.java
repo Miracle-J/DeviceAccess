@@ -64,6 +64,8 @@ public class DeviceDataUdpServer {
     }
 
     private void process(byte[] data) {
+        // 添加解析前报文打印
+        System.out.println("解析前报文: " + Arrays.toString(data));
         if (data.length < MsgItemParser.LENGTH) {
             System.out.println("数据长度不足，期望: " + MsgItemParser.LENGTH + ", 实际: " + data.length);
             return;

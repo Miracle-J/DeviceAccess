@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.wx</groupId>
     <artifactId>DeviceAccess</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
     <name>DeviceAccess</name>
     <description>DeviceAccess</description>
     <properties>
@@ -60,7 +60,7 @@
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.wx.DeviceAccessApplication</mainClass>
-                    <skip>true</skip>
+                    <skip>false</skip>
                 </configuration>
                 <executions>
                     <execution>
